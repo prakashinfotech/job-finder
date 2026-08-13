@@ -1,0 +1,21 @@
+{
+  "name": "@jobfinder/worker",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc --project tsconfig.json",
+    "lint": "echo worker lint",
+    "typecheck": "tsc --noEmit",
+    "format": "echo worker format"
+  },
+  "dependencies": {
+    "@jobfinder/db": "workspace:*",
+    "@jobfinder/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@jobfinder/config": "workspace:*",
+    "@types/node": "^22.15.18",
+    "tsx": "^4.19.3"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@jobfinder/utils",
+  "private": true,
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "lint": "echo utils lint",
+    "typecheck": "tsc --noEmit",
+    "format": "echo utils format"
+  },
+  "devDependencies": {
+    "@jobfinder/config": "workspace:*",
+    "typescript": "^5.8.3"
+  }
+}

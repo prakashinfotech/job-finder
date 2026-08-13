@@ -1,0 +1,53 @@
+:root {
+  font-family: Arial, sans-serif;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+select {
+  cursor: pointer;
+}
+
+::placeholder {
+  color: #a8b3c4;
+  opacity: 1;
+}
+
+body {
+  margin: 0;
+}
+
+.admin-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    linear-gradient(135deg, rgba(30, 64, 175, 0.08), transparent),
+    #f3f4f6;
+}
+
+.admin-card {
+  width: min(100%, 680px);
+  padding: 2rem;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 12px 40px rgba(17, 24, 39, 0.08);
+}
+
+.admin-card h1 {
+  margin: 0.5rem 0 1rem;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  color: #1d4ed8;
+}

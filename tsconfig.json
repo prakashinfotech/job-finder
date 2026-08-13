@@ -1,0 +1,3 @@
+{
+  "extends": "@jobfinder/config/typescript/base.json"
+}

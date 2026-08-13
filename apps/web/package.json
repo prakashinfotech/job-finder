@@ -1,0 +1,30 @@
+{
+  "name": "@jobfinder/web",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "format": "echo web format"
+  },
+  "dependencies": {
+    "@jobfinder/db": "workspace:*",
+    "@jobfinder/ui": "workspace:*",
+    "@jobfinder/utils": "workspace:*",
+    "@jobfinder/validations": "workspace:*",
+    "@prisma/client": "^6.6.0",
+    "next": "^15.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@jobfinder/config": "workspace:*",
+    "@types/node": "^22.15.18",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "tailwindcss": "^4.1.5"
+  }
+}

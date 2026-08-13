@@ -1,0 +1,5 @@
+{
+  "extends": "@jobfinder/config/typescript/node.json",
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

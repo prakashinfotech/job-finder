@@ -1,0 +1,10 @@
+{
+  "name": "@jobfinder/config",
+  "private": true,
+  "version": "0.1.0",
+  "exports": {
+    "./typescript/base.json": "./typescript/base.json",
+    "./typescript/nextjs.json": "./typescript/nextjs.json",
+    "./typescript/node.json": "./typescript/node.json"
+  }
+}
