@@ -99,59 +99,58 @@ Before you begin, ensure you have the following installed:
 
 ---
 
-# 🚀 Getting Started
+# 🚀 Getting Started (Simple Steps)
 
-## Clone the Repository
+## Prerequisites
+
+- Node.js (v18+)
+- pnpm
+- PostgreSQL (running locally)
+
+---
+
+## Step 1: Clone the Repository
 
 ```bash
 git clone https://github.com/your-org/jobfinder.git
 cd jobfinder
 ```
 
----
-
-## Set Up the Database
-
-### 1. Create PostgreSQL Database
+## Step 2: Install Dependencies
 
 ```bash
-# Using PostgreSQL CLI
+pnpm install
+```
+
+## Step 3: Create the Database
+
+```bash
 createdb jobfinder
 ```
 
-### 2. Set Up Environment Variables
+## Step 4: Set Up Environment Variables
 
-Create a `.env.local` file in the root:
+Create a `.env.local` file in the project root:
 
 ```bash
 # Database
 DATABASE_URL="postgresql://user:password@localhost:5432/jobfinder"
 
+# Frontend
+NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
 ```
 
-### 3. Run Prisma Migrations
+## Step 5: Run Database Migrations and Seed
 
 ```bash
-pnpm install
 pnpm prisma migrate dev --name init
 pnpm prisma db seed
 ```
 
----
+## Step 6: Check `next.config.ts`
 
-## Set Up the Backend
-
-The backend runs as part of the Next.js application using Route Handlers and Server Actions.
-
-### 1. Install Dependencies
-
-```bash
-pnpm install
-```
-
-### 2. Build Configuration
-
-Ensure `next.config.ts` is configured for API routes:
+Make sure it looks like this:
 
 ```typescript
 const nextConfig = {
@@ -166,9 +165,23 @@ const nextConfig = {
 export default nextConfig;
 ```
 
-### 3. Set Up Workers (Optional)
+## Step 7: Start the App
 
-For background job processing:
+```bash
+pnpm run dev
+```
+
+The frontend and backend both run together:
+
+| Service | URL |
+|---------|-----|
+| App (frontend) | http://localhost:3000 |
+| API | http://localhost:3000/api |
+| API docs (if configured) | http://localhost:3000/api/docs |
+
+## Step 8 (Optional): Start the Background Worker
+
+Open a new terminal:
 
 ```bash
 cd apps/worker
@@ -178,51 +191,7 @@ pnpm run dev
 
 ---
 
-## Run the Backend
-
-```bash
-# Development mode
-pnpm run dev
-
-# Production build
-pnpm run build
-pnpm run start
-```
-
-The API will be available at `http://localhost:3000/api`.
-
-API documentation (Swagger) will be available at `http://localhost:3000/api/docs` (if configured).
-
----
-
-## Set Up the Frontend
-
-The frontend is built with Next.js and runs on the same port as the backend during development.
-
-### 1. Install Dependencies
-
-```bash
-pnpm install
-```
-
-### 2. Environment Variables
-
-Ensure `.env.local` is set up (same as database setup):
-
-```bash
-NEXT_PUBLIC_API_URL="http://localhost:3000/api"
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-```
-
-### 3. Run Development Server
-
-```bash
-pnpm run dev
-```
-
-The application will start at `http://localhost:3000`.
-
-### 4. Build for Production
+## Production Build
 
 ```bash
 pnpm run build
