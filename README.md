@@ -99,13 +99,14 @@ Before you begin, ensure you have the following installed:
 
 ---
 
-# 🚀 Getting Started (Simple Steps)
+# 🚀 Getting Started
 
 ## Prerequisites
 
-- Node.js (v18+)
+- Node.js (v20+)
 - pnpm
-- PostgreSQL (running locally)
+- PostgreSQL 18+ (running locally)
+- Git
 
 ---
 
@@ -118,70 +119,184 @@ cd jobfinder
 
 ## Step 2: Install Dependencies
 
+Install dependencies for the entire monorepo:
+
 ```bash
 pnpm install
 ```
 
 ## Step 3: Create the Database
 
+Create a PostgreSQL database for the project:
+
 ```bash
 createdb jobfinder
 ```
 
+Or using psql:
+
+```bash
+psql -U postgres -c "CREATE DATABASE jobfinder;"
+```
+
 ## Step 4: Set Up Environment Variables
 
-Create a `.env.local` file in the project root:
+Create a `.env.local` file in the project root (copy from `.env.example`):
 
 ```bash
 # Database
-DATABASE_URL="postgresql://user:password@localhost:5432/jobfinder"
+DATABASE_URL="postgresql://postgres:password@localhost:5432/jobfinder"
 
-# Frontend
+# Frontend Apps
 NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+
+# Authentication (NextAuth/Auth.js)
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key-here-change-in-production"
+
+# Optional: Stripe
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+STRIPE_SECRET_KEY="sk_test_..."
+
+# Optional: AWS S3 / File Storage
+AWS_S3_BUCKET="your-bucket"
+AWS_ACCESS_KEY_ID="your-key"
+AWS_SECRET_ACCESS_KEY="your-secret"
+
+# Optional: Email Service
+RESEND_API_KEY="your-resend-key"
+
+# Optional: Redis (for queues)
+REDIS_URL="redis://localhost:6379"
 ```
 
 ## Step 5: Run Database Migrations and Seed
 
+Initialize the database schema and seed with sample data:
+
 ```bash
-pnpm prisma migrate dev --name init
+pnpm prisma migrate dev --skip-generate
 pnpm prisma db seed
 ```
 
-## Step 6: Check `next.config.ts`
+If you haven't generated the Prisma client yet, run:
 
-Make sure it looks like this:
-
-```typescript
-const nextConfig = {
-  typescript: {
-    strictNullChecks: true,
-  },
-  env: {
-    DATABASE_URL: process.env.DATABASE_URL,
-  },
-};
-
-export default nextConfig;
+```bash
+pnpm prisma generate --schema ./prisma/schema.prisma
 ```
 
-## Step 7: Start the App
+## Step 6: Start All Services
+
+Start the development server from the root directory. This will run all apps in the monorepo:
 
 ```bash
 pnpm run dev
 ```
 
-The frontend and backend both run together:
+This command starts:
+- **Frontend (Web)** on port 3000
+- **Admin Dashboard** on port 3001
+- **API** on port 3000 (same as web, under `/api` route)
+- **Worker** on a separate process (for background jobs)
 
-| Service | URL |
-|---------|-----|
-| App (frontend) | http://localhost:3000 |
-| API | http://localhost:3000/api |
-| API docs (if configured) | http://localhost:3000/api/docs |
+---
 
-## Step 8 (Optional): Start the Background Worker
+## Services & URLs
 
-Open a new terminal:
+Once `pnpm run dev` is running, access the services at:
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| **Frontend (Web)** | http://localhost:3000 | Job seeker & employer portal |
+| **Admin Dashboard** | http://localhost:3001 | Admin management panel |
+| **API (REST)** | http://localhost:3000/api | Backend API endpoints |
+
+---
+
+### Frontend URLs
+
+**Web Application** (http://localhost:3000):
+
+| Page | URL | Role |
+|------|-----|------|
+| Home | http://localhost:3000 | All users |
+| Job Search | http://localhost:3000/jobs/search | Job seekers |
+| Freshers Jobs | http://localhost:3000/jobs/freshers-jobs | Job seekers |
+| Full-time Jobs | http://localhost:3000/jobs/full-time-jobs | Job seekers |
+| Part-time Jobs | http://localhost:3000/jobs/part-time-jobs | Job seekers |
+| Work from Home | http://localhost:3000/jobs/work-from-home-jobs | Job seekers |
+| Jobs for Women | http://localhost:3000/jobs/jobs-for-women | Job seekers |
+| Job Detail | http://localhost:3000/job/[city] | All users |
+| Sign In | http://localhost:3000/signin | All users |
+| Employer Portal | http://localhost:3000/employer | Employers |
+| Employer Sign In | http://localhost:3000/employer/signin | Employers |
+| Employer Onboarding | http://localhost:3000/employer/onboarding | New employers |
+| Employer Dashboard | http://localhost:3000/employer/dashboard | Authenticated employers |
+| Post New Job | http://localhost:3000/employer/jobs/new | Authenticated employers |
+| Contact Us | http://localhost:3000/contact-us | All users |
+
+**Admin Dashboard** (http://localhost:3001):
+
+| Page | URL | Role |
+|------|-----|------|
+| Dashboard | http://localhost:3001/dashboard | Admins only |
+| User Management | http://localhost:3001/users | Admins only |
+| Job Moderation | http://localhost:3001/jobs | Admins only |
+
+---
+
+### API Endpoints
+
+**Base URL**: http://localhost:3000/api
+
+| Category | Endpoint | Method | Purpose |
+|----------|----------|--------|---------|
+| **Auth** | /api/auth/register | POST | Register new user |
+| | /api/auth/login | POST | User login |
+| | /api/auth/logout | POST | User logout |
+| **Jobs** | /api/jobs | GET | List all jobs |
+| | /api/jobs/[id] | GET | Get job details |
+| | /api/jobs | POST | Create job (employer) |
+| | /api/jobs/[id] | PUT | Update job (employer) |
+| | /api/jobs/[id] | DELETE | Delete job (employer) |
+| **Applications** | /api/applications | GET | Get user applications |
+| | /api/applications | POST | Submit application |
+| | /api/applications/[id] | GET | Get application details |
+| **Candidate** | /api/candidate/resume | POST | Upload resume |
+| | /api/candidate/profile | GET | Get candidate profile |
+| | /api/candidate/profile | PUT | Update candidate profile |
+| **Employer** | /api/employer/dashboard | GET | Employer dashboard data |
+| | /api/employer/applications | GET | Employer's applications |
+| | /api/employer/candidates | GET | Employer's candidates |
+| | /api/employer/analytics | GET | Employer analytics |
+
+---
+
+## Step 7 (Optional): Start Services Separately
+
+If you need to run services individually:
+
+### Start only the Web App
+
+```bash
+cd apps/web
+pnpm install
+pnpm run dev
+```
+
+Web runs on: http://localhost:3000
+
+### Start only the Admin Dashboard
+
+```bash
+cd apps/admin
+pnpm install
+pnpm run dev
+```
+
+Admin runs on: http://localhost:3001
+
+### Start only the Background Worker
 
 ```bash
 cd apps/worker
@@ -189,14 +304,55 @@ pnpm install
 pnpm run dev
 ```
 
+Worker processes background jobs (email, resume processing, etc.)
+
 ---
 
-## Production Build
+## Step 8: Build for Production
+
+### Build All Apps
 
 ```bash
 pnpm run build
+```
+
+### Start Production Server
+
+```bash
 pnpm run start
 ```
+
+---
+
+## Docker Setup (Optional)
+
+Build and run the application in Docker:
+
+```bash
+docker-compose up -d
+```
+
+Services will be available at:
+- Frontend: http://localhost:3000
+- Admin: http://localhost:3001
+- API: http://localhost:3000/api
+
+---
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| **Runtime Error: "@prisma/client did not initialize yet"** | Run `pnpm prisma generate --schema ./prisma/schema.prisma` from root, then restart dev server |
+| **Port 3000 already in use** | PowerShell: `Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess \| Stop-Process -Force` |
+| **Port 3001 already in use** | PowerShell: `Get-Process -Id (Get-NetTCPConnection -LocalPort 3001).OwningProcess \| Stop-Process -Force` |
+| **Database connection error** | Verify PostgreSQL is running and `DATABASE_URL` in `.env` is correct. Test: `psql -U postgres -d jobfinder_clone` |
+| **pnpm install fails** | Clear cache: `pnpm store prune` then retry: `pnpm install` |
+| **Prisma migration error** | Run `pnpm prisma migrate dev --skip-generate` or `pnpm prisma db push` |
+| **Module not found errors** | Run `pnpm install` from root and ensure workspace is linked: `pnpm run build` |
+| **@jobfinder/db import error** | Generate Prisma client: `pnpm prisma generate --schema ./prisma/schema.prisma` |
+| **Build fails with TypeScript errors** | Ensure `@types/node` is installed: `pnpm add -w -D @types/node` |
+| **Next.js 404 on API endpoints** | Ensure `.next` folder is deleted and run `pnpm run dev` again |
 
 ---
 
