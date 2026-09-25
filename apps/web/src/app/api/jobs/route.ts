@@ -11,8 +11,14 @@ export async function GET() {
     const dbIds = new Set(dbJobs.map((j) => j.id));
     const merged = [...dbJobs, ...staticJobs.filter((j) => !dbIds.has(j.id))];
     return NextResponse.json({ jobs: merged });
-  } catch {
+  } catch (error) {
+    // Log the error for debugging
+    console.error('Error fetching jobs from database:', error);
+    
     // DB unavailable — serve static data so the UI always has content
-    return NextResponse.json({ jobs: staticJobs });
+    return NextResponse.json({ 
+      jobs: staticJobs,
+      message: 'Serving cached data - database connection failed'
+    });
   }
 }
