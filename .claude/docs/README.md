@@ -121,19 +121,52 @@ createdb jobfinder
 
 ### 2. Set Up Environment Variables
 
-Create a `.env.local` file in the root:
+Since this is a **monorepo**, there is **ONE shared `.env` file** in the root directory, not separate ones for each app.
+
+Create a `.env` file in the root (`/jobfinder/.env`):
 
 ```bash
-# Database
+# ─── Database (Shared by all apps) ───
 DATABASE_URL="postgresql://user:password@localhost:5432/jobfinder"
 
+# ─── Frontend URLs ───
+NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+
+# ─── Authentication ───
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key-change-in-production"
+
+# ─── Optional: Stripe ───
+STRIPE_SECRET_KEY="sk_test_..."
+
+# ─── Optional: AWS S3 / File Storage ───
+AWS_S3_BUCKET="your-bucket"
+AWS_ACCESS_KEY_ID="your-key"
+AWS_SECRET_ACCESS_KEY="your-secret"
+
+# ─── Optional: Email Service ───
+RESEND_API_KEY="your-resend-key"
+
+# ─── Optional: Redis (for queues) ───
+REDIS_URL="redis://localhost:6379"
+
+# ─── Optional: SMS Service ───
+TWILIO_ACCOUNT_SID="your-account-sid"
+TWILIO_AUTH_TOKEN="your-auth-token"
 ```
+
+**Important Notes:**
+- ✅ All apps (`web`, `admin`, `worker`) read from the **same `.env` file** in the root
+- ✅ Environment variables prefixed with `NEXT_PUBLIC_` are exposed to the browser (frontend only)
+- ✅ Other variables are only accessible on the server side
+- ✅ Never commit `.env` to Git - add it to `.gitignore`
 
 ### 3. Run Prisma Migrations
 
 ```bash
 pnpm install
-pnpm prisma migrate dev --name init
+pnpm prisma migrate dev --skip-generate
 pnpm prisma db seed
 ```
 
@@ -191,41 +224,150 @@ pnpm run start
 
 The API will be available at `http://localhost:3000/api`.
 
-API documentation (Swagger) will be available at `http://localhost:3000/api/docs` (if configured).
+---
+
+## Using PM2 for Production (Optional)
+
+### 1. Install PM2 Globally
+
+```bash
+npm install -g pm2
+```
+
+### 2. Create PM2 Ecosystem File
+
+Create a file named `ecosystem.config.js` in the root directory:
+
+```javascript
+module.exports = {
+  apps: [
+    {
+      name: 'jobfinder-web',
+      script: 'pnpm',
+      args: 'run dev --filter=@jobfinder/web',
+      cwd: '/path/to/jobfinder',
+      env: {
+        NODE_ENV: 'development',
+        PORT: 3000,
+      },
+      env_production: {
+        NODE_ENV: 'production',
+        PORT: 3000,
+      },
+      error_file: 'logs/web-error.log',
+      out_file: 'logs/web-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    },
+    {
+      name: 'jobfinder-admin',
+      script: 'pnpm',
+      args: 'run dev --filter=@jobfinder/admin',
+      cwd: '/path/to/jobfinder',
+      env: {
+        NODE_ENV: 'development',
+        PORT: 3001,
+      },
+      env_production: {
+        NODE_ENV: 'production',
+        PORT: 3001,
+      },
+      error_file: 'logs/admin-error.log',
+      out_file: 'logs/admin-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    },
+    {
+      name: 'jobfinder-worker',
+      script: 'pnpm',
+      args: 'run dev --filter=@jobfinder/worker',
+      cwd: '/path/to/jobfinder',
+      env: {
+        NODE_ENV: 'development',
+      },
+      env_production: {
+        NODE_ENV: 'production',
+      },
+      error_file: 'logs/worker-error.log',
+      out_file: 'logs/worker-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    },
+  ],
+};
+```
+
+### 3. Start with PM2
+
+**Development Mode:**
+```bash
+pm2 start ecosystem.config.js
+```
+
+**Production Mode:**
+```bash
+pm2 start ecosystem.config.js --env production
+```
+
+### 4. PM2 Common Commands
+
+```bash
+# View all running processes
+pm2 list
+
+# View logs
+pm2 logs
+
+# View specific app logs
+pm2 logs jobfinder-web
+
+# Stop all apps
+pm2 stop all
+
+# Restart all apps
+pm2 restart all
+
+# Kill all apps
+pm2 kill all
+
+# Save PM2 process list and resurrect on reboot
+pm2 startup
+pm2 save
+```
 
 ---
 
 ## Set Up the Frontend
 
-The frontend is built with Next.js and runs on the same port as the backend during development.
+The frontend is built with Next.js and is part of the **monorepo**. It runs in the same process as the backend during development via the `pnpm run dev` command.
 
-### 1. Install Dependencies
+### 1. Environment Variables Already Set
 
-```bash
-pnpm install
-```
+All environment variables are already configured in the root `.env` file (from the database setup step). No additional setup needed.
 
-### 2. Environment Variables
-
-Ensure `.env.local` is set up (same as database setup):
+### 2. Run Development Server
 
 ```bash
-NEXT_PUBLIC_API_URL="http://localhost:3000/api"
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-```
-
-### 3. Run Development Server
-
-```bash
+# This starts ALL apps in the monorepo:
+# - Web app on port 3000
+# - Admin app on port 3001
+# - Worker processes in background
 pnpm run dev
 ```
 
-The application will start at `http://localhost:3000`.
+The application will start at:
+- **Frontend**: http://localhost:3000
+- **Admin Dashboard**: http://localhost:3001
+- **API**: http://localhost:3000/api
 
-### 4. Build for Production
+### 3. Build for Production
 
 ```bash
 pnpm run build
+```
+
+This builds all apps in the monorepo.
+
+### 4. Start Production Server
+
+```bash
 pnpm run start
 ```
 
